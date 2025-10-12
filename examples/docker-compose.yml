@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik-jwt-plugin
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
+      - "--entrypoints.web.address=:80"
+      - "--log.level=DEBUG"
+      - "--experimental.localPlugins.traefik-jwt-decoder-plugin.moduleName=github.com/user/traefik-jwt-decoder-plugin"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./dynamic-config.yml:/etc/traefik/dynamic/dynamic-config.yml:ro
+      - ../:/plugins-local/src/github.com/user/traefik-jwt-decoder-plugin:ro
+    networks:
+      - traefik-network
+
+  whoami:
+    image: traefik/whoami:latest
+    container_name: whoami-service
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
+      - "traefik.http.routers.whoami.entrypoints=web"
+      - "traefik.http.routers.whoami.middlewares=jwt-decoder@file"
+      - "traefik.http.services.whoami.loadbalancer.server.port=80"
+    networks:
+      - traefik-network
+
+networks:
+  traefik-network:
+    driver: bridge

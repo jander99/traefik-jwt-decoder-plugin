@@ -1,0 +1,22 @@
+http:
+  middlewares:
+    jwt-decoder:
+      plugin:
+        traefik-jwt-decoder-plugin:
+          sourceHeader: "Authorization"
+          tokenPrefix: "Bearer "
+          claims:
+            - claimPath: "sub"
+              headerName: "X-User-Id"
+            - claimPath: "email"
+              headerName: "X-User-Email"
+            - claimPath: "roles"
+              headerName: "X-User-Roles"
+              arrayFormat: "comma"
+            - claimPath: "custom.tenant_id"
+              headerName: "X-Tenant-Id"
+          sections:
+            - "payload"
+          continueOnError: true
+          maxClaimDepth: 10
+          maxHeaderSize: 8192
