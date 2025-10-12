@@ -1,0 +1,11 @@
+displayName: JWT Claims to Headers
+type: middleware
+import: github.com/user/traefik-jwt-decoder-plugin
+summary: Extract JWT claims and inject as HTTP headers
+
+testData:
+  sourceHeader: Authorization
+  tokenPrefix: "Bearer "
+  claims:
+    - claimPath: sub
+      headerName: X-User-Id

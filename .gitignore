@@ -1,0 +1,27 @@
+# Build artifacts
+coverage.out
+coverage.html
+*.coverprofile
+
+# IDE and OS files
+*.swp
+.DS_Store
+.vscode/
+.idea/
+
+# Vendor dependencies (if any future external deps added)
+/vendor/
+
+# Temporary files
+*~
+.temp/
+.tmp/
+
+# Go specific
+*.test
+*.bench
+*.prof
+
+# Security and secrets (just in case)
+.env
+*.pem
