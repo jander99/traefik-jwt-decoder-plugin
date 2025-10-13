@@ -11,7 +11,7 @@ A Traefik middleware plugin that extracts claims from JWT tokens and injects the
 
 This plugin decodes JWT tokens (without validation), extracts specified claims, and injects them as HTTP headers. It's designed for scenarios where JWT validation happens at the edge (API gateway) and internal services need access to JWT claims without re-parsing tokens.
 
-**⚠️ SECURITY NOTICE**: This plugin does NOT verify JWT signatures. Deploy only behind authenticated API gateways. See [SECURITY.md](SECURITY.md) for details.
+**⚠️ SECURITY NOTICE**: This plugin does NOT verify JWT signatures. Deploy only behind authenticated API gateways. See [SECURITY.md](docs/SECURITY.md) for details.
 
 ## Table of Contents
 
@@ -773,7 +773,7 @@ go test -race ./...
 go test -cover ./...
 ```
 
-**Security Audit**: See [SECURITY.md](SECURITY.md) for complete threat model, security controls, and deployment recommendations.
+**Security Audit**: See [SECURITY.md](docs/SECURITY.md) for complete threat model, security controls, and deployment recommendations.
 
 ## Development
 
@@ -834,9 +834,11 @@ go test -v -run TestParseJWT_Valid
 │   ├── dynamic-config.yml
 │   ├── test-plugin.sh
 │   └── README.md
-├── ARCHITECTURE.md           # System design and data flow
-├── SECURITY.md               # Threat model and security controls
-├── CONTRIBUTING.md           # Development guidelines
+├── docs/                     # Documentation
+│   ├── ARCHITECTURE.md       # System design and data flow
+│   ├── SECURITY.md           # Threat model and security controls
+│   ├── CONTRIBUTING.md       # Development guidelines
+│   └── CHANGELOG.md          # Version history
 └── README.md                 # This file
 ```
 
@@ -847,13 +849,14 @@ go test -v -run TestParseJWT_Valid
 - **Type Assertions**: Claims are `map[string]interface{}`, check types before assertions
 - **Nil Handling**: JWT claims may be null, handle gracefully
 
-For detailed development guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
+For detailed development guidelines, see [CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 ## Documentation
 
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System design, components, and data flow
-- **[SECURITY.md](SECURITY.md)** - Security model, threat analysis, and deployment recommendations
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development workflow, testing requirements, and PR guidelines
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System design, components, and data flow
+- **[SECURITY.md](docs/SECURITY.md)** - Security model, threat analysis, and deployment recommendations
+- **[CONTRIBUTING.md](docs/CONTRIBUTING.md)** - Development workflow, testing requirements, and PR guidelines
+- **[CHANGELOG.md](docs/CHANGELOG.md)** - Version history and release notes
 - **[examples/README.md](examples/README.md)** - Docker Compose testing environment setup
 - **[CLAUDE.md](CLAUDE.md)** - Development guidance for Claude Code AI assistant
 
@@ -868,7 +871,7 @@ godoc -http=:6060
 
 ## Contributing
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for:
+Contributions are welcome! Please read [CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
 
 - Development setup instructions
 - Code style guidelines
