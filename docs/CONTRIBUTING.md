@@ -600,8 +600,3 @@ Contributors are recognized in:
 - GitHub Contributors page
 
 Thank you for contributing to the Traefik JWT Decoder Plugin!
-
----
-
-**Last Updated**: 2025-10-12
-**Project Version**: 1.0.0

@@ -366,6 +366,8 @@ func authorizeAdmin(r *http.Request) error {
 
 ### Secure Configuration Example
 
+**Note**: This example shows production-recommended values. Code defaults may differ (e.g., `continueOnError` defaults to `true`, but `false` is recommended for production; `maxClaimDepth` defaults to `10`, but `5` is recommended for stricter security).
+
 ```yaml
 http:
   middlewares:
@@ -391,55 +393,15 @@ http:
           maxHeaderSize: 4096  # Limit header size (4KB)
 ```
 
-### Network Architecture
+For production deployment architecture including network design, Docker, Kubernetes, and air-gapped environments, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
-**Recommended Setup**:
-```
-┌─────────────────────────────────────────────────────┐
-│ DMZ (Public Network)                                 │
-│                                                       │
-│  ┌──────────────────────────────────────────────┐   │
-│  │ API Gateway (Kong/Auth0/Keycloak)            │   │
-│  │ - JWT Signature Verification                 │   │
-│  │ - TLS Termination                            │   │
-│  │ - Rate Limiting                              │   │
-│  │ - WAF Rules                                  │   │
-│  └──────────────────────────────────────────────┘   │
-│                     │                                 │
-│              TLS (mTLS preferred)                     │
-│                     ▼                                 │
-├─────────────────────────────────────────────────────┤
-│ Private Network (VPC/Internal)                       │
-│                                                       │
-│  ┌──────────────────────────────────────────────┐   │
-│  │ Traefik + JWT Decoder Plugin                 │   │
-│  │ - Claim Extraction                           │   │
-│  │ - Header Injection                           │   │
-│  └──────────────────────────────────────────────┘   │
-│                     │                                 │
-│              Internal TLS (optional)                  │
-│                     ▼                                 │
-│  ┌──────────────────────────────────────────────┐   │
-│  │ Backend Services                             │   │
-│  │ - Business Logic                             │   │
-│  │ - Secondary Validation                       │   │
-│  └──────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────┘
-```
+### Security Monitoring
 
-### Monitoring and Alerting
-
-**Key Metrics to Monitor**:
-1. JWT parse errors (threshold: > 1% of requests)
-2. Header size exceeded errors (investigate large claims)
-3. Claim depth exceeded errors (potential attack)
-4. Protected header injection attempts (blocked, but log for analysis)
-5. Request processing time (detect performance degradation)
-
-**Alert Conditions**:
-- Spike in JWT parse errors (> 5% of requests)
-- Repeated header size exceeded from same source (potential DoS)
-- Unusual claim paths being accessed (potential reconnaissance)
+Monitor these security-related metrics:
+- JWT parse error rate (alert if > 5%)
+- Header size/depth exceeded counts (potential DoS)
+- Protected header injection attempts
+- Unusual claim path patterns (reconnaissance)
 
 ## Security Testing
 
@@ -543,9 +505,9 @@ If you discover a security vulnerability in this plugin, please follow responsib
 - Git tags with `security-` prefix
 
 **Versioning for Security Patches**:
-- Critical/High: Immediate patch release (e.g., 1.0.0 → 1.0.1)
-- Medium: Next minor release (e.g., 1.0.x → 1.1.0)
-- Low: Next major release (e.g., 1.x.x → 2.0.0)
+- Critical/High: Immediate patch release (e.g., v1.0.0 → v1.0.1)
+- Medium: Next minor release (e.g., v1.0.x → v1.1.0)
+- Low: Next major release (e.g., v1.x.x → v2.0.0)
 
 ## Security Checklist
 
@@ -574,9 +536,3 @@ If you discover a security vulnerability in this plugin, please follow responsib
 - [CWE-93: Improper Neutralization of CRLF Sequences](https://cwe.mitre.org/data/definitions/93.html)
 - [CWE-400: Uncontrolled Resource Consumption](https://cwe.mitre.org/data/definitions/400.html)
 - [Traefik Plugin Documentation](https://plugins.traefik.io/)
-
----
-
-**Last Updated**: 2025-10-12
-**Plugin Version**: 1.0.0
-**Security Audit Date**: 2025-10-12

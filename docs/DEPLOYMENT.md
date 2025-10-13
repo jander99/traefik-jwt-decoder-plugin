@@ -69,7 +69,7 @@ services:
     command:
       - "--providers.docker=true"
       - "--providers.file.directory=/etc/traefik/dynamic"
-      - "--experimental.localPlugins.traefik-jwt-decoder-plugin.moduleName=github.com/jander99/traefik-jwt-decoder-plugin"
+      - "--experimental.localPlugins.traefik-jwt-decoder-plugin.moduleName=github.com/user/traefik-jwt-decoder-plugin"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./dynamic-config.yml:/etc/traefik/dynamic/config.yml:ro"
@@ -82,10 +82,10 @@ FROM traefik:v3.0
 
 # Create plugin directory structure
 # Traefik expects: /plugins-local/src/<module-path>
-RUN mkdir -p /plugins-local/src/github.com/jander99/traefik-jwt-decoder-plugin
+RUN mkdir -p /plugins-local/src/github.com/user/traefik-jwt-decoder-plugin
 
 # Copy plugin source into image
-COPY . /plugins-local/src/github.com/jander99/traefik-jwt-decoder-plugin/
+COPY . /plugins-local/src/github.com/user/traefik-jwt-decoder-plugin/
 
 # Plugin is now embedded - no internet needed at runtime
 ```
@@ -119,7 +119,7 @@ For environments without internet access (DMZ, classified networks, etc.).
 
 ```bash
 # Clone repository
-git clone https://github.com/jander99/traefik-jwt-decoder-plugin.git
+git clone https://github.com/user/traefik-jwt-decoder-plugin.git
 cd traefik-jwt-decoder-plugin
 
 # Build image
@@ -164,7 +164,7 @@ docker-compose -f docker-compose.production.yml up -d
 
 ```bash
 # Check plugin loaded
-docker logs <container-id> | grep "plugin"
+docker logs <container> | grep "plugin"
 
 # Should see: "Starting provider *plugin.Provider"
 
@@ -509,11 +509,7 @@ docker tag traefik-jwt-decoder:v0.1.0 traefik-jwt-decoder:production
 ## Support and Maintenance
 
 For issues or questions:
-- GitHub Issues: https://github.com/jander99/traefik-jwt-decoder-plugin/issues
+- GitHub Issues: https://github.com/user/traefik-jwt-decoder-plugin/issues
 - Security Issues: See [SECURITY.md](SECURITY.md)
 - Documentation: See [README.md](../README.md)
 
----
-
-**Last Updated**: 2025-10-12
-**Version**: v0.1.0

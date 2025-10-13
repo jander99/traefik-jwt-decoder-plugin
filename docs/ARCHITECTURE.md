@@ -396,63 +396,20 @@ Error Scenario: Invalid JWT
 
 ## Security Architecture
 
-### Defense Layers
+The plugin implements defense-in-depth with multiple security layers:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Layer 1: Configuration Validation                           │
-│  - Validate claim paths                                      │
-│  - Check for duplicate headers                               │
-│  - Enforce depth/size limits                                 │
-└───────────────────────┬─────────────────────────────────────┘
-                        │
-┌───────────────────────▼─────────────────────────────────────┐
-│  Layer 2: JWT Parsing                                        │
-│  - Validate segment count (must be 3)                        │
-│  - Safe base64 decoding                                      │
-│  - Safe JSON unmarshaling                                    │
-└───────────────────────┬─────────────────────────────────────┘
-                        │
-┌───────────────────────▼─────────────────────────────────────┐
-│  Layer 3: Claim Extraction                                   │
-│  - Depth limit enforcement                                   │
-│  - Type-safe assertions                                      │
-│  - Nil value handling                                        │
-└───────────────────────┬─────────────────────────────────────┘
-                        │
-┌───────────────────────▼─────────────────────────────────────┐
-│  Layer 4: Header Injection                                   │
-│  - Protected header blocking                                 │
-│  - Size limit enforcement                                    │
-│  - Control character sanitization                            │
-│  - Collision policy enforcement                              │
-└─────────────────────────────────────────────────────────────┘
-```
+1. **Configuration Validation** - Validates claim paths and enforces limits
+2. **JWT Parsing** - Safe base64 decoding and JSON unmarshaling
+3. **Claim Extraction** - Depth limits and type-safe assertions
+4. **Header Injection** - Protected header blocking and value sanitization
 
-### Security Controls
+**Key Security Features:**
+- CRLF injection prevention (control character removal)
+- Protected header blacklist (Host, X-Forwarded-*, etc.)
+- Resource limits (`maxClaimDepth`, `maxHeaderSize`)
+- Thread-safe, stateless design
 
-1. **Input Validation**
-   - JWT segment count verification
-   - Base64 encoding validation
-   - JSON structure validation
-
-2. **Resource Limits**
-   - `maxClaimDepth`: Prevent deep recursion (default: 10)
-   - `maxHeaderSize`: Prevent memory exhaustion (default: 8KB)
-
-3. **Output Sanitization**
-   - Control character removal (0x00-0x1F, 0x7F)
-   - CRLF injection prevention (`\r\n` removed)
-   - Unicode normalization handling
-
-4. **Access Control**
-   - Protected header blacklist
-   - Case-insensitive header name checks
-
-5. **Type Safety**
-   - Safe type assertions with `ok` checks
-   - Graceful handling of unexpected types
-   - No panic conditions
+For comprehensive security information including threat model, attack scenarios, and deployment recommendations, see [SECURITY.md](SECURITY.md).
 
 ## Performance Characteristics
 
@@ -556,57 +513,20 @@ go test -race ./... -count=100
 
 ## Deployment Considerations
 
-### Recommended Architecture
+**Architecture Requirements:**
+- Deploy behind API gateway with JWT signature verification
+- Internal network only (no direct internet exposure)
+- TLS enabled for all communication
 
-```
-┌──────────────────────────────────────────────────────────┐
-│  Public Internet                                          │
-└───────────────────────┬──────────────────────────────────┘
-                        │
-                        ▼
-┌──────────────────────────────────────────────────────────┐
-│  API Gateway / Auth Proxy                                 │
-│  - JWT Signature Verification ✓                           │
-│  - Rate Limiting                                          │
-│  - DDoS Protection                                        │
-└───────────────────────┬──────────────────────────────────┘
-                        │ (Validated JWT)
-                        ▼
-┌──────────────────────────────────────────────────────────┐
-│  Traefik + JWT Decoder Plugin                             │
-│  - Claim Extraction (NO verification)                     │
-│  - Header Injection                                       │
-└───────────────────────┬──────────────────────────────────┘
-                        │ (JWT + Headers)
-                        ▼
-┌──────────────────────────────────────────────────────────┐
-│  Backend Services                                         │
-│  - Consume headers                                        │
-│  - Additional validation                                  │
-└──────────────────────────────────────────────────────────┘
-```
+**Scaling:**
+- Stateless design supports horizontal scaling
+- Low memory footprint (~10KB per request)
+- Fast processing (<100μs overhead for 5 claims)
+- No external dependencies
 
-### Scaling Considerations
-
-1. **Stateless Design**: Horizontal scaling supported
-2. **Low Memory Footprint**: ~10KB per request
-3. **Fast Processing**: <100μs overhead per request
-4. **No External Dependencies**: No database, cache, or API calls
-
-### Monitoring Recommendations
-
-**Key Metrics**:
+**Monitoring:**
 - JWT parse error rate (threshold: <1%)
-- Header size exceeded count (investigate if >0)
-- Claim depth exceeded count (potential attack if frequent)
+- Header size/depth exceeded counts
 - Request processing time (p50, p95, p99)
 
-**Alerting**:
-- Spike in JWT errors (>5% of requests)
-- Unusual claim paths (reconnaissance attempts)
-- Performance degradation (p99 >1ms)
-
----
-
-**Last Updated**: 2025-10-12
-**Plugin Version**: 1.0.0
+For production deployment strategies including Docker, Kubernetes, and air-gapped environments, see [DEPLOYMENT.md](DEPLOYMENT.md).

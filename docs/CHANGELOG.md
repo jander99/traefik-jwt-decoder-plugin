@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance optimizations (claim path caching)
 - Prometheus metrics integration
 
-## [0.1.0] - 2025-10-12
+## [v0.1.0] - 2025-10-12
 
 ### Added
 
@@ -126,7 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
-### [0.1.0] - 2025-10-12
+### [v0.1.0] - 2025-10-12
 Initial production-ready release with core functionality, comprehensive security controls, and 93% test coverage.
 
 ---
@@ -182,13 +182,3 @@ http:
 **Feedback Welcome**:
 Please report issues, feature requests, and security vulnerabilities through GitHub. See CONTRIBUTING.md for details.
 
----
-
-**Contributors**: Built with [Claude Code](https://claude.com/claude-code)
-
-**License**: MIT
-
-**Links**:
-- [GitHub Repository](https://github.com/yourusername/traefik-jwt-decoder-plugin)
-- [Traefik Plugin Catalog](https://plugins.traefik.io/)
-- [Documentation](https://github.com/yourusername/traefik-jwt-decoder-plugin/tree/main)
