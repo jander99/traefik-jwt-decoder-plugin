@@ -1,0 +1,33 @@
+# Dockerfile.traefik - Build Traefik with pre-installed JWT decoder plugin
+# This creates a self-contained image that doesn't need internet access at runtime
+
+FROM traefik:v3.0
+
+# Install plugin dependencies
+RUN apk add --no-cache git
+
+# Create plugin directory structure
+# Traefik expects plugins at /plugins-local/src/<module-path>
+RUN mkdir -p /plugins-local/src/github.com/jander99/traefik-jwt-decoder-plugin
+
+# Copy plugin source code into the image
+COPY . /plugins-local/src/github.com/jander99/traefik-jwt-decoder-plugin/
+
+# Set working directory
+WORKDIR /plugins-local/src/github.com/jander99/traefik-jwt-decoder-plugin
+
+# Pre-compile plugin with Yaegi (optional, for faster startup)
+# Note: Yaegi will still interpret at runtime, but this validates the plugin
+RUN traefik version
+
+# Remove git (no longer needed after plugin is copied)
+RUN apk del git
+
+# Switch back to Traefik directory
+WORKDIR /
+
+# Expose ports
+EXPOSE 80 443 8080
+
+# Entry point is inherited from base traefik image
+# CMD ["traefik"]

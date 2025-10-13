@@ -1,0 +1,33 @@
+# .dockerignore - Exclude unnecessary files from Docker build context
+
+# Git directory
+.git/
+.gitignore
+
+# Documentation (not needed in runtime image)
+docs/
+examples/
+CLAUDE.md
+README.md
+
+# Test files and coverage
+*_test.go
+coverage.out
+coverage.html
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+
+# OS files
+.DS_Store
+Thumbs.db

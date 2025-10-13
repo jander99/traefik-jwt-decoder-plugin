@@ -1,0 +1,47 @@
+version: '3.8'
+
+# Production Docker Compose with pre-built Traefik image
+# This configuration doesn't require internet access at runtime
+
+services:
+  traefik:
+    # Use your custom-built image
+    image: traefik-jwt-decoder:latest
+    build:
+      context: ..
+      dockerfile: Dockerfile.traefik
+
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--log.level=DEBUG"
+
+      # Configure local plugin (already embedded in image)
+      - "--experimental.localPlugins.traefik-jwt-decoder-plugin.moduleName=github.com/jander99/traefik-jwt-decoder-plugin"
+
+    ports:
+      - "80:80"
+      - "8080:8080"  # Traefik dashboard
+
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./dynamic-config.yml:/etc/traefik/dynamic/config.yml:ro"
+
+    networks:
+      - traefik-net
+
+    restart: unless-stopped
+
+  whoami:
+    image: traefik/whoami:v1.10
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
+      - "traefik.http.routers.whoami.middlewares=jwt-decoder@file"
+    networks:
+      - traefik-net
+
+networks:
+  traefik-net:
+    driver: bridge
