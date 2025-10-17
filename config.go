@@ -42,6 +42,14 @@ type Config struct {
 	// Prevents memory exhaustion attacks
 	MaxHeaderSize int `json:"maxHeaderSize,omitempty" yaml:"maxHeaderSize,omitempty"`
 
+	// LogLevel controls logging verbosity (default: "warn")
+	// Valid values: "debug", "info", "warn", "error"
+	//   - "debug": Log all operations including header injections
+	//   - "info": Log significant operations
+	//   - "warn": Log warnings and errors only (production default)
+	//   - "error": Log errors only
+	LogLevel string `json:"logLevel,omitempty" yaml:"logLevel,omitempty"`
+
 	// StrictMode validates JWT header structure (requires 'alg' field) (default: false)
 	// Set to true for enhanced security validation, false for backward compatibility
 	StrictMode bool `json:"strictMode,omitempty" yaml:"strictMode,omitempty"`
@@ -84,6 +92,7 @@ func CreateConfig() *Config {
 		RemoveSourceHeader: false,
 		MaxClaimDepth:      10,
 		MaxHeaderSize:      8192,
+		LogLevel:           "warn",
 		StrictMode:         false,
 		LogMissingClaims:   false,
 	}
@@ -157,6 +166,19 @@ func (c *Config) Validate() error {
 	// Check MaxHeaderSize > 0
 	if c.MaxHeaderSize <= 0 {
 		return fmt.Errorf("maxHeaderSize must be greater than 0")
+	}
+
+	// Validate LogLevel if provided
+	if c.LogLevel != "" {
+		validLevels := map[string]bool{
+			"debug": true,
+			"info":  true,
+			"warn":  true,
+			"error": true,
+		}
+		if !validLevels[c.LogLevel] {
+			return fmt.Errorf("invalid logLevel '%s', must be 'debug', 'info', 'warn', or 'error'", c.LogLevel)
+		}
 	}
 
 	return nil

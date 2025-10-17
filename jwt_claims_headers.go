@@ -22,6 +22,24 @@ type JWTClaimsHeaders struct {
 	name string
 }
 
+// shouldLog determines if a message at the given level should be logged
+// based on the configured log level.
+//
+// Log level hierarchy: debug < info < warn < error
+func (j *JWTClaimsHeaders) shouldLog(level string) bool {
+	levels := map[string]int{
+		"debug": 0,
+		"info":  1,
+		"warn":  2,
+		"error": 3,
+	}
+
+	configLevel := levels[j.config.LogLevel]
+	messageLevel := levels[level]
+
+	return messageLevel >= configLevel
+}
+
 // New creates a new JWTClaimsHeaders plugin instance.
 // This function is called by Traefik during plugin initialization.
 //
@@ -71,7 +89,9 @@ func (j *JWTClaimsHeaders) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 	// 1. Extract JWT from source header
 	headerValue := req.Header.Get(j.config.SourceHeader)
 	if headerValue == "" {
-		log.Printf("[%s] JWT source header not found: %s", j.name, j.config.SourceHeader)
+		if j.shouldLog("warn") {
+			log.Printf("[%s] JWT source header not found: %s", j.name, j.config.SourceHeader)
+		}
 		if j.config.ContinueOnError {
 			j.next.ServeHTTP(rw, req)
 			return
@@ -86,7 +106,9 @@ func (j *JWTClaimsHeaders) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 	// 3. Parse JWT
 	jwt, err := ParseJWT(token, j.config.StrictMode)
 	if err != nil {
-		log.Printf("[%s] JWT parse error: %v", j.name, err)
+		if j.shouldLog("error") {
+			log.Printf("[%s] JWT parse error: %v", j.name, err)
+		}
 		if j.config.ContinueOnError {
 			j.next.ServeHTTP(rw, req)
 			return
@@ -119,7 +141,7 @@ func (j *JWTClaimsHeaders) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 		}
 
 		if !found {
-			if j.config.LogMissingClaims {
+			if j.config.LogMissingClaims && j.shouldLog("warn") {
 				log.Printf("[%s] Claim not found: %s", j.name, claimMapping.ClaimPath)
 			}
 			continue // Skip this mapping
@@ -128,18 +150,24 @@ func (j *JWTClaimsHeaders) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 		// Convert claim to string
 		strValue, err := ConvertClaimToString(claimValue, claimMapping.ArrayFormat)
 		if err != nil {
-			log.Printf("[%s] Failed to convert claim %s: %v", j.name, claimMapping.ClaimPath, err)
+			if j.shouldLog("error") {
+				log.Printf("[%s] Failed to convert claim %s: %v", j.name, claimMapping.ClaimPath, err)
+			}
 			continue
 		}
 
 		// Inject header
 		err = InjectHeader(req, claimMapping.HeaderName, strValue, claimMapping.Override, j.config.MaxHeaderSize)
 		if err != nil {
-			log.Printf("[%s] Failed to inject header %s: %v", j.name, claimMapping.HeaderName, err)
+			if j.shouldLog("error") {
+				log.Printf("[%s] Failed to inject header %s: %v", j.name, claimMapping.HeaderName, err)
+			}
 			continue
 		}
 
-		log.Printf("[%s] Injected header: %s = %s", j.name, claimMapping.HeaderName, strValue)
+		if j.shouldLog("debug") {
+			log.Printf("[%s] Injected header: %s = %s", j.name, claimMapping.HeaderName, strValue)
+		}
 	}
 
 	// 5. Remove source header if configured
