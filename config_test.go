@@ -379,6 +379,12 @@ func TestCreateConfig(t *testing.T) {
 	if config.LogLevel != "warn" {
 		t.Errorf("Default LogLevel = %q, want \"warn\"", config.LogLevel)
 	}
+	if config.StrictMode {
+		t.Errorf("Default StrictMode = %v, want false", config.StrictMode)
+	}
+	if config.LogMissingClaims {
+		t.Errorf("Default LogMissingClaims = %v, want false", config.LogMissingClaims)
+	}
 }
 
 // TestValidate_LogLevel verifies LogLevel field validation
@@ -440,6 +446,84 @@ func TestValidate_LogLevel(t *testing.T) {
 				MaxClaimDepth: 10,
 				MaxHeaderSize: 8192,
 				LogLevel:      tt.logLevel,
+			}
+
+			err := config.Validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// TestValidate_StrictMode verifies StrictMode field validates correctly
+func TestValidate_StrictMode(t *testing.T) {
+	tests := []struct {
+		name       string
+		strictMode bool
+		wantErr    bool
+	}{
+		{
+			name:       "StrictMode true",
+			strictMode: true,
+			wantErr:    false,
+		},
+		{
+			name:       "StrictMode false",
+			strictMode: false,
+			wantErr:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &Config{
+				Claims: []ClaimMapping{
+					{ClaimPath: "sub", HeaderName: "X-User-Id"},
+				},
+				Sections:      []string{"payload"},
+				MaxClaimDepth: 10,
+				MaxHeaderSize: 8192,
+				StrictMode:    tt.strictMode,
+			}
+
+			err := config.Validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// TestValidate_LogMissingClaims verifies LogMissingClaims field validates correctly
+func TestValidate_LogMissingClaims(t *testing.T) {
+	tests := []struct {
+		name             string
+		logMissingClaims bool
+		wantErr          bool
+	}{
+		{
+			name:             "LogMissingClaims true",
+			logMissingClaims: true,
+			wantErr:          false,
+		},
+		{
+			name:             "LogMissingClaims false",
+			logMissingClaims: false,
+			wantErr:          false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &Config{
+				Claims: []ClaimMapping{
+					{ClaimPath: "sub", HeaderName: "X-User-Id"},
+				},
+				Sections:         []string{"payload"},
+				MaxClaimDepth:    10,
+				MaxHeaderSize:    8192,
+				LogMissingClaims: tt.logMissingClaims,
 			}
 
 			err := config.Validate()

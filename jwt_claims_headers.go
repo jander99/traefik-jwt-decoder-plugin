@@ -104,7 +104,7 @@ func (j *JWTClaimsHeaders) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 	token := ExtractToken(headerValue, j.config.TokenPrefix)
 
 	// 3. Parse JWT
-	jwt, err := ParseJWT(token)
+	jwt, err := ParseJWT(token, j.config.StrictMode)
 	if err != nil {
 		if j.shouldLog("error") {
 			log.Printf("[%s] JWT parse error: %v", j.name, err)
@@ -141,7 +141,7 @@ func (j *JWTClaimsHeaders) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 		}
 
 		if !found {
-			if j.shouldLog("warn") {
+			if j.config.LogMissingClaims && j.shouldLog("warn") {
 				log.Printf("[%s] Claim not found: %s", j.name, claimMapping.ClaimPath)
 			}
 			continue // Skip this mapping
@@ -201,5 +201,7 @@ func (j *JWTClaimsHeaders) returnError(rw http.ResponseWriter, errorType, messag
 		"message": message,
 	}
 
-	json.NewEncoder(rw).Encode(errorResponse)
+	if err := json.NewEncoder(rw).Encode(errorResponse); err != nil {
+		log.Printf("[%s] Failed to encode error response: %v", j.name, err)
+	}
 }

@@ -1,6 +1,6 @@
 displayName: JWT Claims to Headers
 type: middleware
-import: github.com/user/traefik-jwt-decoder-plugin
+import: github.com/jander99/traefik-jwt-decoder-plugin
 summary: Extract JWT claims and inject as HTTP headers
 
 testData:

@@ -10,9 +10,9 @@ func TestParseJWT_Valid(t *testing.T) {
 	// Payload: {"sub":"1234567890","email":"test@example.com","roles":["admin","user"],"custom":{"tenant_id":"tenant-123"},"iat":1516239022}
 	validToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwicm9sZXMiOlsiYWRtaW4iLCJ1c2VyIl0sImN1c3RvbSI6eyJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtMTIzIn0sImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 
-	jwt, err := ParseJWT(validToken)
+	jwt, err := ParseJWT(validToken, false)
 	if err != nil {
-		t.Fatalf("ParseJWT() failed with valid token: %v", err)
+		t.Fatalf("ParseJWT(, false) failed with valid token: %v", err)
 	}
 
 	// Verify header
@@ -73,12 +73,12 @@ func TestParseJWT_InvalidSegmentCount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			jwt, err := ParseJWT(tt.token)
+			jwt, err := ParseJWT(tt.token, false)
 			if err == nil {
-				t.Errorf("ParseJWT() expected error for %d segments, got nil", tt.segments)
+				t.Errorf("ParseJWT(, false) expected error for %d segments, got nil", tt.segments)
 			}
 			if jwt != nil {
-				t.Errorf("ParseJWT() expected nil JWT, got %v", jwt)
+				t.Errorf("ParseJWT(, false) expected nil JWT, got %v", jwt)
 			}
 		})
 	}
@@ -110,12 +110,12 @@ func TestParseJWT_InvalidBase64(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			jwt, err := ParseJWT(tt.token)
+			jwt, err := ParseJWT(tt.token, false)
 			if err == nil {
-				t.Errorf("ParseJWT() expected error for invalid base64, got nil")
+				t.Errorf("ParseJWT(, false) expected error for invalid base64, got nil")
 			}
 			if jwt != nil {
-				t.Errorf("ParseJWT() expected nil JWT, got %v", jwt)
+				t.Errorf("ParseJWT(, false) expected nil JWT, got %v", jwt)
 			}
 		})
 	}
@@ -147,12 +147,12 @@ func TestParseJWT_InvalidJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			jwt, err := ParseJWT(tt.token)
+			jwt, err := ParseJWT(tt.token, false)
 			if err == nil {
-				t.Errorf("ParseJWT() expected error for invalid JSON, got nil")
+				t.Errorf("ParseJWT(, false) expected error for invalid JSON, got nil")
 			}
 			if jwt != nil {
-				t.Errorf("ParseJWT() expected nil JWT, got %v", jwt)
+				t.Errorf("ParseJWT(, false) expected nil JWT, got %v", jwt)
 			}
 		})
 	}
@@ -160,13 +160,101 @@ func TestParseJWT_InvalidJSON(t *testing.T) {
 
 // TestParseJWT_EmptyToken verifies error handling for empty token
 func TestParseJWT_EmptyToken(t *testing.T) {
-	jwt, err := ParseJWT("")
+	jwt, err := ParseJWT("", false)
 	if err == nil {
-		t.Errorf("ParseJWT() expected error for empty token, got nil")
+		t.Errorf("ParseJWT(, false) expected error for empty token, got nil")
 	}
 	if jwt != nil {
-		t.Errorf("ParseJWT() expected nil JWT, got %v", jwt)
+		t.Errorf("ParseJWT(, false) expected nil JWT, got %v", jwt)
 	}
+}
+
+// TestParseJWT_StrictMode verifies JWT header validation in strict mode
+func TestParseJWT_StrictMode(t *testing.T) {
+	tests := []struct {
+		name       string
+		token      string
+		strictMode bool
+		wantErr    bool
+		errorMsg   string
+	}{
+		{
+			name:       "valid JWT with alg - strict mode enabled",
+			token:      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjMifQ.sig",
+			strictMode: true,
+			wantErr:    false,
+		},
+		{
+			name:       "valid JWT with alg - strict mode disabled",
+			token:      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjMifQ.sig",
+			strictMode: false,
+			wantErr:    false,
+		},
+		{
+			name: "JWT without alg - strict mode enabled (should fail)",
+			// Header: {"typ":"JWT"} - missing alg field
+			token:      "eyJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxMjMifQ.sig",
+			strictMode: true,
+			wantErr:    true,
+			errorMsg:   "missing required 'alg' field",
+		},
+		{
+			name: "JWT without alg - strict mode disabled (should pass)",
+			// Header: {"typ":"JWT"} - missing alg field
+			token:      "eyJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxMjMifQ.sig",
+			strictMode: false,
+			wantErr:    false,
+		},
+		{
+			name: "empty JWT header object - strict mode enabled",
+			// Header: {}
+			token:      "e30.eyJzdWIiOiIxMjMifQ.sig",
+			strictMode: true,
+			wantErr:    true,
+			errorMsg:   "missing required 'alg' field",
+		},
+		{
+			name: "empty JWT header object - strict mode disabled",
+			// Header: {}
+			token:      "e30.eyJzdWIiOiIxMjMifQ.sig",
+			strictMode: false,
+			wantErr:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			jwt, err := ParseJWT(tt.token, tt.strictMode)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("ParseJWT() expected error in strict mode, got nil")
+				} else if tt.errorMsg != "" && !contains(err.Error(), tt.errorMsg) {
+					t.Errorf("ParseJWT() error = %v, want error containing %q", err, tt.errorMsg)
+				}
+				if jwt != nil {
+					t.Errorf("ParseJWT() expected nil JWT on error, got %v", jwt)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("ParseJWT() unexpected error: %v", err)
+				}
+				if jwt == nil {
+					t.Error("ParseJWT() returned nil JWT without error")
+				}
+			}
+		})
+	}
+}
+
+// contains checks if a string contains a substring
+func contains(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }
 
 // TestExtractToken_WithPrefix verifies prefix removal

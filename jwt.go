@@ -41,8 +41,11 @@ type JWT struct {
 // It should only be used in trusted internal networks where
 // signature validation happens at the API gateway.
 //
+// Strict Mode: When enabled, validates JWT header contains required 'alg' field.
+// This helps detect malformed tokens that might indicate attacks or misconfigurations.
+//
 // Example:
-//   jwt, err := ParseJWT("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+//   jwt, err := ParseJWT("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", false)
 //   if err != nil {
 //       return nil, fmt.Errorf("parse failed: %w", err)
 //   }
@@ -52,7 +55,8 @@ type JWT struct {
 //   - Token format is invalid (not exactly 3 segments)
 //   - Base64 decoding fails for header or payload
 //   - JSON parsing fails for header or payload
-func ParseJWT(token string) (*JWT, error) {
+//   - strictMode=true and 'alg' field is missing from JWT header
+func ParseJWT(token string, strictMode bool) (*JWT, error) {
 	// Split token into segments
 	segments := strings.Split(token, ".")
 	if len(segments) != 3 {
@@ -81,6 +85,13 @@ func ParseJWT(token string) (*JWT, error) {
 	var payload map[string]interface{}
 	if err := json.Unmarshal(payloadBytes, &payload); err != nil {
 		return nil, fmt.Errorf("invalid JWT JSON: %v", err)
+	}
+
+	// Validate JWT header structure in strict mode
+	if strictMode {
+		if _, ok := header["alg"]; !ok {
+			return nil, fmt.Errorf("invalid JWT header: missing required 'alg' field")
+		}
 	}
 
 	// Return JWT struct with signature as-is (not decoded)
