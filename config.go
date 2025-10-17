@@ -41,6 +41,10 @@ type Config struct {
 	// MaxHeaderSize is the maximum size of header values in bytes (default: 8192)
 	// Prevents memory exhaustion attacks
 	MaxHeaderSize int `json:"maxHeaderSize,omitempty" yaml:"maxHeaderSize,omitempty"`
+
+	// LogMissingClaims controls whether to log when claims are not found (default: false)
+	// Set to true for debugging, false for production to reduce log noise
+	LogMissingClaims bool `json:"logMissingClaims,omitempty" yaml:"logMissingClaims,omitempty"`
 }
 
 // ClaimMapping defines a single mapping from a JWT claim path to an HTTP header name.
@@ -76,6 +80,7 @@ func CreateConfig() *Config {
 		RemoveSourceHeader: false,
 		MaxClaimDepth:      10,
 		MaxHeaderSize:      8192,
+		LogMissingClaims:   false,
 	}
 }
 

@@ -119,7 +119,9 @@ func (j *JWTClaimsHeaders) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 		}
 
 		if !found {
-			log.Printf("[%s] Claim not found: %s", j.name, claimMapping.ClaimPath)
+			if j.config.LogMissingClaims {
+				log.Printf("[%s] Claim not found: %s", j.name, claimMapping.ClaimPath)
+			}
 			continue // Skip this mapping
 		}
 
