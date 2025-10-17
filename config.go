@@ -45,6 +45,10 @@ type Config struct {
 	// StrictMode validates JWT header structure (requires 'alg' field) (default: false)
 	// Set to true for enhanced security validation, false for backward compatibility
 	StrictMode bool `json:"strictMode,omitempty" yaml:"strictMode,omitempty"`
+
+	// LogMissingClaims controls whether to log when claims are not found (default: false)
+	// Set to true for debugging, false for production to reduce log noise
+	LogMissingClaims bool `json:"logMissingClaims,omitempty" yaml:"logMissingClaims,omitempty"`
 }
 
 // ClaimMapping defines a single mapping from a JWT claim path to an HTTP header name.
@@ -81,6 +85,7 @@ func CreateConfig() *Config {
 		MaxClaimDepth:      10,
 		MaxHeaderSize:      8192,
 		StrictMode:         false,
+		LogMissingClaims:   false,
 	}
 }
 

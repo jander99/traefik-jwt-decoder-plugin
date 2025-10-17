@@ -1,3 +1,3 @@
-module github.com/user/traefik-jwt-decoder-plugin
+module github.com/jander99/traefik-jwt-decoder-plugin
 
 go 1.21
