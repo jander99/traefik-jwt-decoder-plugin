@@ -376,4 +376,46 @@ func TestCreateConfig(t *testing.T) {
 	if config.MaxHeaderSize != 8192 {
 		t.Errorf("Default MaxHeaderSize = %d, want 8192", config.MaxHeaderSize)
 	}
+	if config.LogMissingClaims {
+		t.Errorf("Default LogMissingClaims = %v, want false", config.LogMissingClaims)
+	}
+}
+
+// TestValidate_LogMissingClaims verifies LogMissingClaims field validates correctly
+func TestValidate_LogMissingClaims(t *testing.T) {
+	tests := []struct {
+		name             string
+		logMissingClaims bool
+		wantErr          bool
+	}{
+		{
+			name:             "LogMissingClaims true",
+			logMissingClaims: true,
+			wantErr:          false,
+		},
+		{
+			name:             "LogMissingClaims false",
+			logMissingClaims: false,
+			wantErr:          false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &Config{
+				Claims: []ClaimMapping{
+					{ClaimPath: "sub", HeaderName: "X-User-Id"},
+				},
+				Sections:         []string{"payload"},
+				MaxClaimDepth:    10,
+				MaxHeaderSize:    8192,
+				LogMissingClaims: tt.logMissingClaims,
+			}
+
+			err := config.Validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
 }
