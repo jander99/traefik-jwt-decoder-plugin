@@ -41,6 +41,14 @@ type Config struct {
 	// MaxHeaderSize is the maximum size of header values in bytes (default: 8192)
 	// Prevents memory exhaustion attacks
 	MaxHeaderSize int `json:"maxHeaderSize,omitempty" yaml:"maxHeaderSize,omitempty"`
+
+	// LogLevel controls logging verbosity (default: "warn")
+	// Valid values: "debug", "info", "warn", "error"
+	//   - "debug": Log all operations including header injections
+	//   - "info": Log significant operations
+	//   - "warn": Log warnings and errors only (production default)
+	//   - "error": Log errors only
+	LogLevel string `json:"logLevel,omitempty" yaml:"logLevel,omitempty"`
 }
 
 // ClaimMapping defines a single mapping from a JWT claim path to an HTTP header name.
@@ -76,6 +84,7 @@ func CreateConfig() *Config {
 		RemoveSourceHeader: false,
 		MaxClaimDepth:      10,
 		MaxHeaderSize:      8192,
+		LogLevel:           "warn",
 	}
 }
 
@@ -147,6 +156,19 @@ func (c *Config) Validate() error {
 	// Check MaxHeaderSize > 0
 	if c.MaxHeaderSize <= 0 {
 		return fmt.Errorf("maxHeaderSize must be greater than 0")
+	}
+
+	// Validate LogLevel if provided
+	if c.LogLevel != "" {
+		validLevels := map[string]bool{
+			"debug": true,
+			"info":  true,
+			"warn":  true,
+			"error": true,
+		}
+		if !validLevels[c.LogLevel] {
+			return fmt.Errorf("invalid logLevel '%s', must be 'debug', 'info', 'warn', or 'error'", c.LogLevel)
+		}
 	}
 
 	return nil

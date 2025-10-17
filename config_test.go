@@ -376,4 +376,76 @@ func TestCreateConfig(t *testing.T) {
 	if config.MaxHeaderSize != 8192 {
 		t.Errorf("Default MaxHeaderSize = %d, want 8192", config.MaxHeaderSize)
 	}
+	if config.LogLevel != "warn" {
+		t.Errorf("Default LogLevel = %q, want \"warn\"", config.LogLevel)
+	}
+}
+
+// TestValidate_LogLevel verifies LogLevel field validation
+func TestValidate_LogLevel(t *testing.T) {
+	tests := []struct {
+		name     string
+		logLevel string
+		wantErr  bool
+	}{
+		{
+			name:     "debug level valid",
+			logLevel: "debug",
+			wantErr:  false,
+		},
+		{
+			name:     "info level valid",
+			logLevel: "info",
+			wantErr:  false,
+		},
+		{
+			name:     "warn level valid",
+			logLevel: "warn",
+			wantErr:  false,
+		},
+		{
+			name:     "error level valid",
+			logLevel: "error",
+			wantErr:  false,
+		},
+		{
+			name:     "empty string valid (uses default)",
+			logLevel: "",
+			wantErr:  false,
+		},
+		{
+			name:     "invalid level uppercase",
+			logLevel: "DEBUG",
+			wantErr:  true,
+		},
+		{
+			name:     "invalid level",
+			logLevel: "invalid",
+			wantErr:  true,
+		},
+		{
+			name:     "invalid level trace",
+			logLevel: "trace",
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &Config{
+				Claims: []ClaimMapping{
+					{ClaimPath: "sub", HeaderName: "X-User-Id"},
+				},
+				Sections:      []string{"payload"},
+				MaxClaimDepth: 10,
+				MaxHeaderSize: 8192,
+				LogLevel:      tt.logLevel,
+			}
+
+			err := config.Validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
 }
