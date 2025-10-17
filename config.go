@@ -42,6 +42,10 @@ type Config struct {
 	// Prevents memory exhaustion attacks
 	MaxHeaderSize int `json:"maxHeaderSize,omitempty" yaml:"maxHeaderSize,omitempty"`
 
+	// StrictMode validates JWT header structure (requires 'alg' field) (default: false)
+	// Set to true for enhanced security validation, false for backward compatibility
+	StrictMode bool `json:"strictMode,omitempty" yaml:"strictMode,omitempty"`
+
 	// LogMissingClaims controls whether to log when claims are not found (default: false)
 	// Set to true for debugging, false for production to reduce log noise
 	LogMissingClaims bool `json:"logMissingClaims,omitempty" yaml:"logMissingClaims,omitempty"`
@@ -80,6 +84,7 @@ func CreateConfig() *Config {
 		RemoveSourceHeader: false,
 		MaxClaimDepth:      10,
 		MaxHeaderSize:      8192,
+		StrictMode:         false,
 		LogMissingClaims:   false,
 	}
 }
