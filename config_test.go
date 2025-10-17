@@ -376,4 +376,46 @@ func TestCreateConfig(t *testing.T) {
 	if config.MaxHeaderSize != 8192 {
 		t.Errorf("Default MaxHeaderSize = %d, want 8192", config.MaxHeaderSize)
 	}
+	if config.StrictMode {
+		t.Errorf("Default StrictMode = %v, want false", config.StrictMode)
+	}
+}
+
+// TestValidate_StrictMode verifies StrictMode field validates correctly
+func TestValidate_StrictMode(t *testing.T) {
+	tests := []struct {
+		name       string
+		strictMode bool
+		wantErr    bool
+	}{
+		{
+			name:       "StrictMode true",
+			strictMode: true,
+			wantErr:    false,
+		},
+		{
+			name:       "StrictMode false",
+			strictMode: false,
+			wantErr:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &Config{
+				Claims: []ClaimMapping{
+					{ClaimPath: "sub", HeaderName: "X-User-Id"},
+				},
+				Sections:      []string{"payload"},
+				MaxClaimDepth: 10,
+				MaxHeaderSize: 8192,
+				StrictMode:    tt.strictMode,
+			}
+
+			err := config.Validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
 }

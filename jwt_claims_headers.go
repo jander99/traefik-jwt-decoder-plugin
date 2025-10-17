@@ -84,7 +84,7 @@ func (j *JWTClaimsHeaders) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 	token := ExtractToken(headerValue, j.config.TokenPrefix)
 
 	// 3. Parse JWT
-	jwt, err := ParseJWT(token)
+	jwt, err := ParseJWT(token, j.config.StrictMode)
 	if err != nil {
 		log.Printf("[%s] JWT parse error: %v", j.name, err)
 		if j.config.ContinueOnError {

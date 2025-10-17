@@ -41,6 +41,10 @@ type Config struct {
 	// MaxHeaderSize is the maximum size of header values in bytes (default: 8192)
 	// Prevents memory exhaustion attacks
 	MaxHeaderSize int `json:"maxHeaderSize,omitempty" yaml:"maxHeaderSize,omitempty"`
+
+	// StrictMode validates JWT header structure (requires 'alg' field) (default: false)
+	// Set to true for enhanced security validation, false for backward compatibility
+	StrictMode bool `json:"strictMode,omitempty" yaml:"strictMode,omitempty"`
 }
 
 // ClaimMapping defines a single mapping from a JWT claim path to an HTTP header name.
@@ -76,6 +80,7 @@ func CreateConfig() *Config {
 		RemoveSourceHeader: false,
 		MaxClaimDepth:      10,
 		MaxHeaderSize:      8192,
+		StrictMode:         false,
 	}
 }
 
